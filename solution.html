@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>solution</title>
+    <link rel="stylesheet" type="text/css" href="static/bootstrap.min.css">
+    <style type="text/css">
+    .container{
+        padding: 20px 10px;
+    }
+    .tree-options{
+        padding: 30px 0px;
+    }
+
+    .node circle {
+      fill: #fff;
+      stroke: steelblue;
+      stroke-width: 3px;
+    }
+
+    .node text { font: 12px sans-serif; }
+
+    .link {
+      fill: none;
+      stroke: #ccc;
+      stroke-width: 2px;
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+      <div class="col-lg-6 col-md-offset-3">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Node Value to search in tree..." id="searchValue">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" id="searchbutton">Search Node</button>
+          </span>
+        </div><!-- /input-group -->
+      </div><!-- /.col-lg-6 -->
+      <div class="col-lg-6 col-md-offset-3">
+          <br>
+          <div class="well well-lg" id="answerdiv">Please input the node to search</div>
+      </div>
+    </div><!-- /.row -->
+    <div class="row tree-options">
+
+        <ul id="myTab" class="nav nav-tabs">
+          <li class="active"><a href="#visualtree" data-toggle="tab">Visual Tree</a></li>
+          <li class=""><a href="#modifytree" data-toggle="tab">Modify Tree</a></li>
+        </ul>
+        <div id="myTabContent" class="tab-content">
+          <div class="tab-pane fade active in" id="visualtree">
+            
+          </div>
+          <div class="tab-pane fade" id="modifytree">
+            <div class="input-group">
+                <textarea class="form-control custom-control" rows="25" cols="100" style="resize:none" id="treedata" placeholder="Input tree value in valid json format"></textarea>     
+                <span class="btn btn-primary" id="prettyprinttree">Pretty Print Tree</span>
+            </div>
+          </div>
+        </div>
+
+    </div>
+
+</div>
+<!-- <input type="text" name="search"> -->
+
+
+<script type="text/javascript" src="static/index.e629c34edf.beautify.js"></script>
+<script type="text/javascript" src="static/jquery.min.js"></script>
+<script type="text/javascript" src="static/bootstrap.min.js"></script>
+<script type="text/javascript" src="static/d3.v3.min.js"></script>
+<script type="text/javascript" src="static/loadtree.js"></script>
+<script type="text/javascript" src="static/initialtree.js"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+    var pretty = JSON.stringify(initialtree, undefined, 4);
+    $("#treedata").val(pretty);
+    $('#searchValue').keypress(function (e) {
+     var key = e.which;
+     if(key == 13)  // the enter key code
+      {
+        $('#searchbutton').click();
+        return false;  
+      }
+    }); 
+    updateTree(getTreeObject());
+
+    function getTreeObject(){
+        var treeObj;
+        try{
+            var ugly = $("#treedata").val();
+            treeObj = JSON.parse(ugly);
+        } 
+        catch(e){
+            treeObj = initialtree;
+        } 
+        $("#treedata").val(JSON.stringify(treeObj, undefined, 4));
+        return treeObj;
+    }
+
+    $("#searchbutton").click(function(){
+        var lookup = new TreeLookup();
+        lookup.i = getTreeObject();
+        
+        lookup.getChildrenAsPromise('/')
+        .then(function (nodesFromPromise) { 
+
+            // works as sentinel
+            var rootChildren = nodesFromPromise;
+
+            function searchNode(searchValue, path){
+                return lookup.getChildrenAsPromise(path).then(function(children){
+                    
+                    for(var i = 0; i<children.length; i++){
+                        if(children[i] == searchValue){
+                            return path;
+                        }
+                    }
+
+                    return new Promise(function(resolve, reject){
+                        (function loop(i){
+                            if(i>=children.length){
+                                reject("path not found")
+                            } else {
+                                searchNode(searchValue, path+"/"+children[i]).then(resolve, loop.bind(null, i+1));
+                            }
+
+                        })(0);
+                    });
+                        
+                })
+            }
+
+            var valueToSearch = $("#searchValue").val();
+            // var valueToSearch = 12
+            searchNode(valueToSearch, "").then(function(path){
+                if(path == "") path = "/"
+                $("#answerdiv").text("Path to node Found: " + path);
+            }, function(reason){
+                $("#answerdiv").text(reason);
+            })
+        });
+    });
+
+
+    $("#prettyprinttree").click(function(){
+        $("#treedata").val(JSON.stringify(getTreeObject(), undefined, 4));
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href") // activated tab
+        if(target == "#visualtree"){
+            updateTree(getTreeObject());
+        }
+    });
+
+});
+
+
+</script>
+</body>
+</html>
