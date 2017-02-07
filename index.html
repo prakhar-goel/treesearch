@@ -1,42 +1,165 @@
 <!DOCTYPE html>
-	<html data-version=2585b2d-dirty>
-		<head>
-		<title>One.com Dubai Webdev Assignment</title>
-		<style>body,html{width:700px;margin:0 auto;font-family:Tahoma,sans-serif;font-size:18px;line-height:130%}article,header{margin:0 0 50px}article{padding:20px 50px;background-color:#eee}h1{margin:10px 0 20px;font-weight:400}h2,h3{margin:10px 0;font-weight:400}p,ul{margin:0}.method-documentation{margin:15px 0 25px;font-family:Courier New,monospace;font-size:16px;line-height:100%}.method-documentation h3{font-weight:700}.method-documentation p{margin:5px 0}.method-documentation .param-type{padding:0 2px;font-size:12px;background-color:#fefefe}.example{font-family:Courier New,monospace;font-size:14px}
-		</style>
-		</head>
-		<body>
-		<header>
-			<h1>One.com JavaScript Assignment</h1>
-			<p>Create an <abbr title="Single Page Application">SPA</abbr> with a search box and a search result area below it. The search result area should be populated with the path to the target number using the TreeLookup API and a breadth-first search.</p>
-			<p>Get the TreeLookup source <a href=static/index.e629c34edf.js>here</a>.</p>
-		</header>
-		<article>
-			<h2>Requirements</h2>
-			<ul>
-				<li>The solution should be a Single Page Application submitted in a zip file, tarball, or accessible git repository.</li> <li>It should contain a field for entering a number to search for.</li>
-				<li>After submitting the value to search for, a breadth-first search should be performed using the TreeLookup API</li> <li>The search result area should display the appropriate path or some indication that a path was not found if the number does not exist.</li></ul><h3>Optional Steps</h3><ul><li>Produce a production-ready build of the application.</li>
-				<li>Incorporate a modern framework or library.</li> 
-				<li>Add another useful feature.</li>
-			</ul>
-		</article>
-		<article>
-			<h2>TreeLookup API Documentation</h2>
-			<p>An instance of TreeLookup can be used to fetch the child nodes of the node at a particular path. It performs this lookup asynchronously and exposes the functionality through 2 similar methods.</p>
-			<section class=method-documentation><h3>getChildrenAsCallback(path, cb)</h3><ul class=param-list><li><strong class=param-name>path</strong> <span class=param-type>type: String</span> The path to the node to fetch.</li> <li><strong class=param-name>cb</strong> <span class=param-type>type: Function</span> The function to be called after the lookup is completed.</li></ul><p>The callback should accept <strong class=param-name>err</strong> <span class=param-type>type: Error</span> and <strong class=param-name>nodes</strong> <span class=param-type>type: Array</span> as parameters.</p>
-			</section>
-			<section class=method-documentation><h3>getChildrenAsPromise(path)</h3><ul class=param-list><li><strong class=param-name>path</strong> <span class=param-type>type: String</span> The path to the node to fetch.</li></ul><p>The returned Promise should resolve with a <strong class=param-name>nodes</strong> <span class=param-type>type: Array</span> parameter and reject with an <strong class=param-name>err</strong> <span class=param-type>type: Error</span> parameter.</p>
-			</section>
-			<h3>Example</h3>
-			<pre class=example>var lookup = new TreeLookup();
-lookup.getChildrenAsCallback('/', function (err, nodesFromCb) {
-lookup.getChildrenAsPromise('/' + nodesFromCb[0])
-.then(function (nodesFromPromise) {
-console.log(nodesFromPromise);
+<html>
+<head>
+    <title>solution</title>
+    <link rel="stylesheet" type="text/css" href="static/bootstrap.min.css">
+    <style type="text/css">
+    .container{
+        padding: 20px 10px;
+    }
+    .tree-options{
+        padding: 30px 0px;
+    }
+
+    .node circle {
+      fill: #fff;
+      stroke: steelblue;
+      stroke-width: 3px;
+    }
+
+    .node text { font: 12px sans-serif; }
+
+    .link {
+      fill: none;
+      stroke: #ccc;
+      stroke-width: 2px;
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+      <div class="col-lg-6 col-md-offset-3">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Node Value to search in tree..." id="searchValue">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" id="searchbutton">Search Node</button>
+          </span>
+        </div><!-- /input-group -->
+      </div><!-- /.col-lg-6 -->
+      <div class="col-lg-6 col-md-offset-3">
+          <br>
+          <div class="well well-lg" id="answerdiv">Please input the node to search</div>
+      </div>
+    </div><!-- /.row -->
+    <div class="row tree-options">
+
+        <ul id="myTab" class="nav nav-tabs">
+          <li class="active"><a href="#visualtree" data-toggle="tab">Visual Tree</a></li>
+          <li class=""><a href="#modifytree" data-toggle="tab">Modify Tree</a></li>
+        </ul>
+        <div id="myTabContent" class="tab-content">
+          <div class="tab-pane fade active in" id="visualtree">
+            
+          </div>
+          <div class="tab-pane fade" id="modifytree">
+            <div class="input-group">
+                <textarea class="form-control custom-control" rows="25" cols="100" style="resize:none" id="treedata" placeholder="Input tree value in valid json format"></textarea>     
+                <span class="btn btn-primary" id="prettyprinttree">Pretty Print Tree</span>
+            </div>
+          </div>
+        </div>
+
+    </div>
+
+</div>
+<!-- <input type="text" name="search"> -->
+
+
+<script type="text/javascript" src="static/index.e629c34edf.beautify.js"></script>
+<script type="text/javascript" src="static/jquery.min.js"></script>
+<script type="text/javascript" src="static/bootstrap.min.js"></script>
+<script type="text/javascript" src="static/d3.v3.min.js"></script>
+<script type="text/javascript" src="static/loadtree.js"></script>
+<script type="text/javascript" src="static/initialtree.js"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+    var pretty = JSON.stringify(initialtree, undefined, 4);
+    $("#treedata").val(pretty);
+    $('#searchValue').keypress(function (e) {
+     var key = e.which;
+     if(key == 13)  // the enter key code
+      {
+        $('#searchbutton').click();
+        return false;  
+      }
+    }); 
+    updateTree(getTreeObject());
+
+    function getTreeObject(){
+        var treeObj;
+        try{
+            var ugly = $("#treedata").val();
+            treeObj = JSON.parse(ugly);
+        } 
+        catch(e){
+            treeObj = initialtree;
+        } 
+        $("#treedata").val(JSON.stringify(treeObj, undefined, 4));
+        return treeObj;
+    }
+
+    $("#searchbutton").click(function(){
+        var lookup = new TreeLookup();
+        lookup.i = getTreeObject();
+        
+        lookup.getChildrenAsPromise('/')
+        .then(function (nodesFromPromise) { 
+
+            // works as sentinel
+            var rootChildren = nodesFromPromise;
+
+            function searchNode(searchValue, path){
+                return lookup.getChildrenAsPromise(path).then(function(children){
+                    
+                    for(var i = 0; i<children.length; i++){
+                        if(children[i] == searchValue){
+                            return path;
+                        }
+                    }
+
+                    return new Promise(function(resolve, reject){
+                        (function loop(i){
+                            if(i>=children.length){
+                                reject("path not found")
+                            } else {
+                                searchNode(searchValue, path+"/"+children[i]).then(resolve, loop.bind(null, i+1));
+                            }
+
+                        })(0);
+                    });
+                        
+                })
+            }
+
+            var valueToSearch = $("#searchValue").val();
+            // var valueToSearch = 12
+            searchNode(valueToSearch, "").then(function(path){
+                if(path == "") path = "/"
+                $("#answerdiv").text("Path to node Found: " + path);
+            }, function(reason){
+                $("#answerdiv").text(reason);
+            })
+        });
+    });
+
+
+    $("#prettyprinttree").click(function(){
+        $("#treedata").val(JSON.stringify(getTreeObject(), undefined, 4));
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr("href") // activated tab
+        if(target == "#visualtree"){
+            updateTree(getTreeObject());
+        }
+    });
+
 });
-});
-</pre>
-		</article>
-		</body>
-		<script type="text/javascript" src="static/index.e629c34edf.js"></script>
-	</html>
+
+
+</script>
+</body>
+</html>
