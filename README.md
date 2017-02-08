@@ -6,7 +6,6 @@ A simple tool, that lets you search for a node in an N-ary tree. You may modify 
 Demo
 ------------
 - [Try out the Visual Search Here](https://prakhar-goel.github.io/treesearch/)
-- [Further details](https://prakhar-goel.github.io/treesearch/question.html)
 
 Screenshots
 ---------------
